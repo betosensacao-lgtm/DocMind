@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { HumanMessage } from "@langchain/core/messages";
 import { runDocGraph } from "@/lib/langgraph";
 import { sanitizeInput, detectInjection } from "@/lib/security/guardrails";
+import { supabase } from "@/lib/supabase/client";
 
 export async function POST(request: Request) {
   try {
@@ -37,7 +38,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ reply: "Sorry, I cannot process that prompt.", status: "error" });
     }
 
-    // Call DocMind LangGraph
+    // 1. Upload file to Supabase Storage
+    const storagePath = `${organizationId}/${conversationId}_${fileName}`;
+    
+    // If documentContent is base64 we should convert it, but assuming it is just text for now:
+    const fileBuffer = Buffer.from(documentContent, 'utf-8');
+    
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("docmind_documents")
+      .upload(storagePath, fileBuffer, {
+        contentType: "text/plain", // Default to text, ideally dynamic
+        upsert: true
+      });
+
+    if (uploadError) {
+      console.error("[STORAGE UPLOAD ERROR]", uploadError);
+      // We don't fail the request, just log it. Or we could fail it.
+    } else {
+      console.log(`[STORAGE] Uploaded to docmind_documents/${storagePath}`);
+    }
+
+    // 2. Call DocMind LangGraph
     const result = await runDocGraph({
       messages: [new HumanMessage(sanitizedPrompt)],
       organizationId: organizationId,

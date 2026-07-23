@@ -1,9 +1,12 @@
 import {
-  pgTable, pgEnum, uuid, varchar, text, integer, boolean, timestamp, jsonb,
+  uuid, varchar, text, integer, boolean, timestamp, jsonb, pgSchema, customType
 } from "drizzle-orm/pg-core";
 
-export const documentStatus = pgEnum("document_status", ["PROCESSING", "READY", "ERROR"]);
-export const extractionFieldType = pgEnum("extraction_field_type", ["text", "date", "number", "boolean", "email", "phone"]);
+export const docmindSchema = pgSchema("docmind");
+export const pgTable = docmindSchema.table;
+
+export const documentStatus = docmindSchema.enum("document_status", ["PROCESSING", "READY", "ERROR"]);
+export const extractionFieldType = docmindSchema.enum("extraction_field_type", ["text", "date", "number", "boolean", "email", "phone"]);
 
 export const organizations = pgTable("docmind_organizations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -34,7 +37,11 @@ export const documentChunks = pgTable("document_chunks", {
   id: uuid("id").defaultRandom().primaryKey(),
   documentId: uuid("document_id").references(() => documents.id).notNull(),
   content: text("content").notNull(),
-  embedding: varchar("embedding", { length: 10000 }),
+  embedding: customType<{ data: number[] }>({
+    dataType() {
+      return "vector(1536)";
+    },
+  })("embedding"),
   chunkIndex: integer("chunk_index").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

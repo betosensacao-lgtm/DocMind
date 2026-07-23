@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import "@/styles/globals.css";
+import { RealtimeDashboard } from "@/components/realtime-dashboard";
 
 export const metadata: Metadata = {
   title: "DocMind - Document Intelligence Platform",
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <Toaster richColors position="top-center" />
+        <RealtimeDashboard />
       </body>
     </html>
   );

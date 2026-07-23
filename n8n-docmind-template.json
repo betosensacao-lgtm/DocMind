@@ -31,13 +31,13 @@
             {
               "id": "b3e5124f-c0c1-4b10-8b2b-09e7c5b62e4a",
               "name": "fileName",
-              "value": "={{ $json.body.attachment_name || 'document.txt' }}",
+              "value": "={{ $json.attachment_name || $json.body.attachment_name || 'document.txt' }}",
               "type": "string"
             },
             {
               "id": "c7a8291f-0e12-4c22-9e8a-1a89c1f23d4e",
               "name": "documentContent",
-              "value": "={{ $json.body.extracted_text }}",
+              "value": "={{ $json.extracted_text || $json.body.extracted_text }}",
               "type": "string"
             },
             {

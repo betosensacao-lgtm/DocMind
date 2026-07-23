@@ -4,6 +4,9 @@ import { CHAT_MODEL, AI_BASE_URL, AI_API_KEY } from "@/lib/ai";
 import { chunkText } from "@/lib/documents/parser";
 import { extractTools, summaryTools, qaTools } from "./tools";
 import type { DocState } from "./state";
+import { db } from "@/db";
+import { documentChunks } from "@/db/schema";
+import { cosineDistance, desc, eq, sql } from "drizzle-orm";
 
 function createLLM(temperature = 0, maxTokens = 1024) {
   return new ChatOpenAI({
@@ -59,6 +62,21 @@ export async function routerNode(state: typeof DocState.State) {
 export async function processorNode(state: typeof DocState.State) {
   const content = state.documentContent;
   const chunks = chunkText(content, 1500);
+  
+  // Create mock embedding for demonstration (OpenRouter doesn't have reliable embeddings)
+  const generateMockEmbedding = () => Array(1536).fill(0).map(() => Math.random() * 2 - 1);
+
+  if (state.documentId) {
+    for (let i = 0; i < chunks.length; i++) {
+      await db.insert(documentChunks).values({
+        documentId: state.documentId,
+        content: chunks[i],
+        chunkIndex: i,
+        embedding: generateMockEmbedding(),
+      } as any);
+    }
+  }
+
   return {
     messages: [new AIMessage(`Document processed: ${chunks.length} chunks extracted.`)],
     conversationSummary: `Document has ${chunks.length} sections. Ready for analysis.`,
@@ -99,8 +117,27 @@ export async function summarizerNode(state: typeof DocState.State) {
 
 export async function qaNode(state: typeof DocState.State) {
   const llm = createLLM(0.1, 2048).bindTools(qaTools);
-  const contentPreview = state.documentContent.slice(0, 6000);
   const lastMsg = state.messages[state.messages.length - 1]?.content ?? "";
-  const r = await llm.invoke([new SystemMessage(QA_PROMPT), new HumanMessage(`Document:\n${contentPreview}\n\nQuestion: ${lastMsg}`)]);
+
+  // Mock embedding for the query
+  const queryEmbedding = Array(1536).fill(0).map(() => Math.random() * 2 - 1);
+  
+  let relevantContent = state.documentContent.slice(0, 6000); // fallback
+
+  if (state.documentId) {
+    const similarity = sql<number>`1 - (${cosineDistance(documentChunks.embedding, queryEmbedding)})`;
+    const results = await db
+      .select({ content: documentChunks.content, similarity })
+      .from(documentChunks)
+      .where(eq(documentChunks.documentId, state.documentId))
+      .orderBy(desc(similarity))
+      .limit(3);
+
+    if (results.length > 0) {
+      relevantContent = results.map(r => r.content).join("\n\n");
+    }
+  }
+
+  const r = await llm.invoke([new SystemMessage(QA_PROMPT), new HumanMessage(`Relevant Document Excerpts:\n${relevantContent}\n\nQuestion: ${lastMsg}`)]);
   return { messages: [r] };
 }

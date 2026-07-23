@@ -2,7 +2,7 @@ import { StateGraph } from "@langchain/langgraph";
 import { DocState } from "./state";
 import { routerNode, processorNode, extractorNode, summarizerNode, qaNode } from "./nodes";
 import { routeAfterRouter, routeAfterProcessor, routeAfterExtractor, routeAfterSummarizer, routeAfterQa } from "./edges";
-import { getCheckpointer } from "./persistence";
+import { getCheckpointer, ensureCheckpointerSetup } from "./persistence";
 
 const wf = new StateGraph(DocState)
   .addNode("router", routerNode)
@@ -20,6 +20,7 @@ const wf = new StateGraph(DocState)
 export const docGraph = wf.compile({ checkpointer: getCheckpointer() });
 
 export async function runDocGraph(input: { messages: any[]; organizationId: string; documentId?: string; documentContent?: string; fileName?: string; fileType?: string }, threadId?: string) {
+  await ensureCheckpointerSetup();
   return docGraph.invoke({
     messages: input.messages,
     organizationId: input.organizationId,
