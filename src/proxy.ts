@@ -4,7 +4,7 @@ import { verifySessionToken } from "@/lib/auth";
 
 const publicRoutes = ["/admin/login", "/admin/signup"];
 
-export async function proxy(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (!pathname.startsWith("/admin")) return NextResponse.next();
   if (publicRoutes.some((r) => pathname.startsWith(r))) return NextResponse.next();
