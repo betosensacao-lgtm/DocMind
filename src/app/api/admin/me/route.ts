@@ -1,9 +1,26 @@
 import { NextResponse } from "next/server";
-import { getUserById } from "@/lib/auth";
+import { verifySessionToken, COOKIE_NAME } from "@/lib/auth";
+
 export async function GET(request: Request) {
-  const userId = request.headers.get("x-user-id");
-  if (!userId) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  const user = await getUserById(userId);
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
-  return NextResponse.json({ id: user.id, name: user.name, email: user.email, role: user.role, organizationId: user.organizationId });
+  const cookie = (request.headers.get("cookie") || "")
+    .split("; ")
+    .find((c) => c.startsWith(`${COOKIE_NAME}=`))
+    ?.split("=")[1];
+
+  if (!cookie) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  try {
+    const session = await verifySessionToken(cookie);
+    return NextResponse.json({
+      id: session.userId,
+      name: session.email?.split("@")[0] || "Admin",
+      email: session.email,
+      role: session.role,
+      organizationId: session.organizationId,
+    });
+  } catch {
+    return NextResponse.json({ error: "Invalid session" }, { status: 401 });
+  }
 }

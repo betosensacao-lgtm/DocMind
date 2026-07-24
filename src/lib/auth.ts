@@ -5,6 +5,8 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import type { AdminSession } from "@/types";
 
+export const COOKIE_NAME = "admin_session";
+
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? "dev-secret");
 const SALT_ROUNDS = 12;
 
