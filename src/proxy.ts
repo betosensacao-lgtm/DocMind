@@ -1,8 +1,17 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifySessionToken } from "@/lib/auth";
+import { jwtVerify } from "jose";
 
 const publicRoutes = ["/admin/login", "/admin/signup"];
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? "dev-secret");
+
+interface SessionPayload {
+  userId: string;
+  organizationId: string;
+  email: string;
+  role: string;
+}
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -13,7 +22,8 @@ export default async function middleware(request: NextRequest) {
   if (!sessionCookie) return NextResponse.redirect(new URL("/admin/login", request.url));
 
   try {
-    const session = await verifySessionToken(sessionCookie);
+    const { payload } = await jwtVerify(sessionCookie, JWT_SECRET);
+    const session = payload as unknown as SessionPayload;
     const headers = new Headers(request.headers);
     headers.set("x-user-id", session.userId);
     headers.set("x-user-email", session.email);
