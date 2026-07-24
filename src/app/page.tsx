@@ -43,7 +43,7 @@ export default function HomePage() {
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-32 text-center z-10 animate-fade-in">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium mb-8 animate-slide-up">
           <Zap className="w-4 h-4 fill-current" />
-          Document Intelligence via n8n & LangGraph
+          Document Intelligence via LangGraph AI
         </div>
         
         <h1 className="font-display text-5xl md:text-7xl font-bold max-w-5xl leading-tight tracking-tight animate-slide-up" style={{ animationDelay: "100ms" }}>
@@ -85,8 +85,8 @@ export default function HomePage() {
             },
             {
               icon: Workflow,
-              title: "Automação via n8n",
-              desc: "Recebeu anexo por e-mail? O n8n intercepta e manda pro DocMind extrair o valor, nome e CNPJ via Webhook.",
+              title: "Automação via Webhooks",
+              desc: "Recebeu anexo por e-mail? Um webhook intercepta e manda pro DocMind extrair o valor, nome e CNPJ automaticamente.",
               color: "text-purple-400",
               bg: "bg-purple-400/10"
             },
