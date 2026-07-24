@@ -1,23 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, FileText, Database, Workflow, Zap } from "lucide-react";
+import { ArrowRight, FileText, Database, Workflow, Zap, Sparkles } from "lucide-react";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 selection:bg-brand-500/30 overflow-hidden relative">
+    <div className="min-h-screen bg-slate-950 text-slate-50 selection:bg-teal-500/30 overflow-hidden relative font-sans">
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-slate-950 -z-10" />
-      <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-50" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-950/30 via-slate-950 to-slate-950 -z-10" />
+      <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-teal-500/50 to-transparent opacity-50" />
 
       {/* Header */}
-      <header className="fixed top-0 w-full border-b border-white/5 bg-slate-950/50 backdrop-blur-md z-50">
+      <header className="fixed top-0 w-full border-b border-slate-800 bg-slate-950/60 backdrop-blur-md z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-teal-500/20">
               <FileText className="w-5 h-5 text-white" />
             </div>
-            <span className="font-display font-bold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+            <span className="font-bold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">
               DocMind
             </span>
           </div>
@@ -26,13 +26,13 @@ export default function HomePage() {
               href="/admin/login"
               className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
             >
-              Acesso Restrito
+              Acesso Admin
             </Link>
             <Link
-              href="/dashboard"
-              className="group relative flex items-center gap-2 text-sm bg-white text-slate-950 px-5 py-2.5 rounded-full font-semibold hover:bg-slate-200 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              href="/admin/documents"
+              className="group relative flex items-center gap-2 text-sm bg-gradient-to-r from-teal-500 to-indigo-600 text-white px-5 py-2.5 rounded-full font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20"
             >
-              Área de Trabalho
+              Documentos & Chat
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </nav>
@@ -40,88 +40,84 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-32 text-center z-10 animate-fade-in">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium mb-8 animate-slide-up">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-32 text-center z-10">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-sm font-medium mb-8">
           <Zap className="w-4 h-4 fill-current" />
-          Document Intelligence via LangGraph AI
+          RAG Multi-Formato & Leitor Inteligente de Documentos
         </div>
-        
-        <h1 className="font-display text-5xl md:text-7xl font-bold max-w-5xl leading-tight tracking-tight animate-slide-up" style={{ animationDelay: "100ms" }}>
-          Extração de dados invisível,{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
-            operações perfeitamente sincronizadas.
+
+        <h1 className="text-5xl md:text-7xl font-extrabold max-w-5xl leading-tight tracking-tight">
+          Análise Inteligente de{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-emerald-300 to-purple-400">
+            PDFs, DOCX e Planilhas
           </span>
         </h1>
-        
-        <p className="text-lg md:text-xl text-slate-400 max-w-3xl mt-8 leading-relaxed animate-slide-up" style={{ animationDelay: "200ms" }}>
-          DocMind transforma documentos não-estruturados (PDFs, Emails, Contratos) em dados úteis usando LangGraph. Conecte com seu ERP ou sistemas legados automaticamente através de fluxos orientados a eventos.
+
+        <p className="text-lg md:text-xl text-slate-400 max-w-3xl mt-8 leading-relaxed">
+          DocMind lê contratos, relatórios e planilhas usando embeddings densos e RAG contextualizado. Faça perguntas, gere resumos e extraia dados estruturados em instantes.
         </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 mt-12 animate-slide-up" style={{ animationDelay: "300ms" }}>
+
+        <div className="flex flex-col sm:flex-row gap-4 mt-12">
           <Link
-            href="/dashboard"
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:-translate-y-1 transition-all"
+            href="/admin/documents"
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-teal-500 to-indigo-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-xl shadow-teal-500/25 hover:scale-105 transition-all"
           >
-            Processar Documento
+            Enviar e Analisar Documento
             <ArrowRight className="w-5 h-5" />
           </Link>
           <Link
-            href="/admin/api-keys"
-            className="flex items-center justify-center px-8 py-4 rounded-full font-semibold text-lg border border-white/10 hover:bg-white/5 transition-colors"
+            href="/admin/dashboard"
+            className="flex items-center justify-center px-8 py-4 rounded-full font-semibold text-lg border border-slate-800 bg-slate-900/50 hover:bg-slate-800 transition-colors"
           >
-            Gerar Webhooks
+            Ver Painel RAG
           </Link>
         </div>
 
         {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full mt-32 animate-slide-up" style={{ animationDelay: "400ms" }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full mt-28">
           {[
             {
               icon: FileText,
-              title: "Processamento Autônomo",
-              desc: "Deixe a IA ler relatórios extensos, notas fiscais e contratos. Chega de copiar e colar manualmente.",
-              color: "text-indigo-400",
-              bg: "bg-indigo-400/10"
+              title: "Parsing Multi-Formato Native",
+              desc: "Suporte completo para leitura de PDF, Word (.docx), Excel (.xlsx), CSV, Markdown e TXT.",
+              color: "text-teal-400",
+              bg: "bg-teal-400/10",
             },
             {
-              icon: Workflow,
-              title: "Automação via Webhooks",
-              desc: "Recebeu anexo por e-mail? Um webhook intercepta e manda pro DocMind extrair o valor, nome e CNPJ automaticamente.",
+              icon: Sparkles,
+              title: "Vetorização Densa 1536D",
+              desc: "Embeddings densos L2-normalizados com busca por Similaridade de Cosseno no PGVector.",
               color: "text-purple-400",
-              bg: "bg-purple-400/10"
+              bg: "bg-purple-400/10",
             },
             {
               icon: Database,
-              title: "Saída Estruturada",
-              desc: "Receba sempre um JSON perfeito formatado no esquema que você definiu. 100% pronto para o seu Banco de Dados.",
-              color: "text-pink-400",
-              bg: "bg-pink-400/10"
+              title: "Chat Contextual RAG",
+              desc: "Conversação em tempo real alimentada por contexto extraído diretamente dos seus documentos.",
+              color: "text-indigo-400",
+              bg: "bg-indigo-400/10",
             },
-          ].map((feature, i) => (
+          ].map((feature) => (
             <div
               key={feature.title}
-              className="group relative border border-white/5 bg-white/5 backdrop-blur-sm rounded-3xl p-8 text-left transition-all hover:bg-white/10 hover:-translate-y-2 hover:border-white/10"
+              className="border border-slate-800 bg-slate-900/40 backdrop-blur-md rounded-3xl p-8 text-left transition-all hover:border-slate-700 hover:bg-slate-900/80"
             >
-              <div className={`w-12 h-12 rounded-2xl ${feature.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+              <div className={`w-12 h-12 rounded-2xl ${feature.bg} flex items-center justify-center mb-6`}>
                 <feature.icon className={`w-6 h-6 ${feature.color}`} />
               </div>
-              <h3 className="font-display font-semibold text-xl mb-3 text-slate-100">
-                {feature.title}
-              </h3>
-              <p className="text-slate-400 leading-relaxed">
-                {feature.desc}
-              </p>
+              <h3 className="font-semibold text-xl mb-3 text-slate-100">{feature.title}</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">{feature.desc}</p>
             </div>
           ))}
         </div>
       </main>
 
-      <footer className="border-t border-white/10 py-8 text-center text-sm text-slate-500 z-10 relative">
+      <footer className="border-t border-slate-800 py-8 text-center text-sm text-slate-500 z-10 relative">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6">
-          <p>© 2026 DocMind. All rights reserved.</p>
-          <div className="flex gap-4">
-            <span className="hover:text-slate-300 cursor-pointer transition-colors">Privacy</span>
-            <span className="hover:text-slate-300 cursor-pointer transition-colors">Terms</span>
+          <p>© 2026 DocMind RAG Intelligence. Todos os direitos reservados.</p>
+          <div className="flex gap-4 text-xs">
+            <span className="hover:text-slate-300 cursor-pointer">PGVector</span>
+            <span className="hover:text-slate-300 cursor-pointer">Multi-Format RAG</span>
           </div>
         </div>
       </footer>
