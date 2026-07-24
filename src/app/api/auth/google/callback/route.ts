@@ -29,27 +29,21 @@ export async function GET(request: Request) {
       .where(eq(googleConnections.userId, userId))
       .limit(1);
 
+    const base = {
+      email: tokens.email,
+      scope: tokens.scope,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      expiresAt: tokens.expiresAt,
+    };
+
     if (existing.length > 0) {
       await db
         .update(googleConnections)
-        .set({
-          email: tokens.email,
-          scope: tokens.scope,
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-          expiresAt: tokens.expiresAt,
-          updatedAt: new Date(),
-        })
+        .set({ ...base, updatedAt: new Date() } as any)
         .where(eq(googleConnections.userId, userId));
     } else {
-      await db.insert(googleConnections).values({
-        userId,
-        email: tokens.email,
-        scope: tokens.scope,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-        expiresAt: tokens.expiresAt,
-      });
+      await db.insert(googleConnections).values({ userId, ...base } as any);
     }
 
     return NextResponse.redirect(new URL("/admin?google=connected", request.url));
