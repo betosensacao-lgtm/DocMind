@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { documents, documentChunks } from "@/db/schema";
 import { parseDocument, chunkText } from "@/lib/documents/parser";
@@ -59,8 +60,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
-
-import { eq } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const orgId = request.headers.get("x-organization-id");

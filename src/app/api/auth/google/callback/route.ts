@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { getTokensFromCode } from "@/lib/google";
 import { googleConnections } from "@/db/schema";
 import { db } from "@/db";
+import { verifySessionToken } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -18,10 +19,17 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL("/admin?google=no_code", request.url));
     }
 
-    const tokens = await getTokensFromCode(code);
+    const cookie = request.headers.get("cookie")?.split(";").find((c) => c.trim().startsWith("admin_session="));
+    let userId = "system";
 
-    // TODO: get userId from session
-    const userId = "system";
+    if (cookie) {
+      try {
+        const session = await verifySessionToken(cookie.split("=")[1]);
+        userId = session.userId;
+      } catch {}
+    }
+
+    const tokens = await getTokensFromCode(code);
 
     const existing = await db
       .select()
