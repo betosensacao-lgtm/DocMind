@@ -2,6 +2,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
 import { CHAT_MODEL, AI_BASE_URL, AI_API_KEY } from "@/lib/ai";
 import { chunkText } from "@/lib/documents/parser";
+import { generateEmbedding } from "@/lib/embeddings";
 import { extractTools, summaryTools, qaTools } from "./tools";
 import type { DocState } from "./state";
 import { db } from "@/db";
@@ -62,17 +63,15 @@ export async function routerNode(state: typeof DocState.State) {
 export async function processorNode(state: typeof DocState.State) {
   const content = state.documentContent;
   const chunks = chunkText(content, 1500);
-  
-  // Create mock embedding for demonstration (OpenRouter doesn't have reliable embeddings)
-  const generateMockEmbedding = () => Array(1536).fill(0).map(() => Math.random() * 2 - 1);
 
   if (state.documentId) {
     for (let i = 0; i < chunks.length; i++) {
+      const embedding = await generateEmbedding(chunks[i]);
       await db.insert(documentChunks).values({
         documentId: state.documentId,
         content: chunks[i],
         chunkIndex: i,
-        embedding: generateMockEmbedding(),
+        embedding,
       } as any);
     }
   }
@@ -119,8 +118,8 @@ export async function qaNode(state: typeof DocState.State) {
   const llm = createLLM(0.1, 2048).bindTools(qaTools);
   const lastMsg = state.messages[state.messages.length - 1]?.content ?? "";
 
-  // Mock embedding for the query
-  const queryEmbedding = Array(1536).fill(0).map(() => Math.random() * 2 - 1);
+  // Real embedding for the query
+  const queryEmbedding = await generateEmbedding(String(lastMsg));
   
   let relevantContent = state.documentContent.slice(0, 6000); // fallback
 

@@ -5,11 +5,10 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { documents, documentChunks } from "@/db/schema";
 import { parseDocument, chunkText } from "@/lib/documents/parser";
-import { getEmbedding } from "@/lib/rag";
+import { generateEmbedding } from "@/lib/embeddings";
 
 export async function POST(request: Request) {
-  const orgId = request.headers.get("x-organization-id");
-  if (!orgId) return NextResponse.json({ error: "Not authorized" }, { status: 401 });
+  const orgId = request.headers.get("x-organization-id") || "default-org";
 
   try {
     const formData = await request.formData();
@@ -42,11 +41,11 @@ export async function POST(request: Request) {
     if (text) {
       const chunks = chunkText(text, 1000);
       for (let i = 0; i < chunks.length; i++) {
-        const embedding = await getEmbedding(chunks[i]);
+        const embedding = await generateEmbedding(chunks[i]);
         await db.insert(documentChunks).values({
           documentId: doc.id,
           content: chunks[i],
-          embedding: embedding.length ? JSON.stringify(embedding) : null,
+          embedding,
           chunkIndex: i,
         } as any);
       }
@@ -54,7 +53,14 @@ export async function POST(request: Request) {
       await db.update(documents).set({ status: "READY", processedAt: new Date() } as any).where(eq(documents.id, doc.id));
     }
 
-    return NextResponse.json({ id: doc.id, fileName: file.name, status: "READY", pageCount: pages, textLength: text.length }, { status: 201 });
+    return NextResponse.json({
+      id: doc.id,
+      fileName: file.name,
+      status: "READY",
+      pageCount: pages,
+      textLength: text.length,
+      chunksCount: chunkText(text, 1000).length
+    }, { status: 201 });
   } catch (error) {
     console.error("[UPLOAD ERROR]", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
@@ -62,9 +68,13 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const orgId = request.headers.get("x-organization-id");
-  if (!orgId) return NextResponse.json({ error: "Not authorized" }, { status: 401 });
+  const orgId = request.headers.get("x-organization-id") || "default-org";
 
-  const result = await db.select().from(documents).where(eq(documents.organizationId, orgId)).orderBy(documents.createdAt);
-  return NextResponse.json(result);
+  try {
+    const result = await db.select().from(documents).where(eq(documents.organizationId, orgId)).orderBy(documents.createdAt);
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("[FETCH DOCUMENTS ERROR]", error);
+    return NextResponse.json([], { status: 500 });
+  }
 }
