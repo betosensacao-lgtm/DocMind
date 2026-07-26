@@ -96,7 +96,7 @@ export default function DocumentsPage() {
           </button>
           <label className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 cursor-pointer">
             <Upload size={16} /> {uploading ? "Uploading..." : "Upload"}
-            <input type="file" className="hidden" onChange={handleUpload} accept=".pdf,.txt,.csv,.json,.md" disabled={uploading} />
+            <input type="file" className="hidden" onChange={handleUpload} accept=".pdf,.docx,.xlsx,.txt,.csv,.json,.md" disabled={uploading} />
           </label>
         </div>
       </div>
@@ -153,7 +153,12 @@ export default function DocumentsPage() {
             <tbody>
               {docs.map((doc) => (
                 <tr key={doc.id} className="border-b border-border hover:bg-muted/50">
-                  <td className="p-3 font-medium">{doc.fileName}</td>
+                  <td className="p-3 font-medium">
+                    <a href={`/documents/${doc.id}`} className="text-teal-400 hover:underline flex items-center gap-1.5">
+                      <FileText size={16} />
+                      {doc.fileName}
+                    </a>
+                  </td>
                   <td className="p-3 text-muted-foreground hidden sm:table-cell">{doc.pageCount ?? "-"}</td>
                   <td className="p-3 text-muted-foreground hidden md:table-cell">{formatFileSize(doc.fileSize)}</td>
                   <td className="p-3">

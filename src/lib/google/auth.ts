@@ -14,7 +14,7 @@ function getConfig(): OAuthConfig {
   return { clientId, clientSecret, redirectUri };
 }
 
-let _oauthClient: OAuth2Client | null = null;
+let _oauthClient: any = null;
 
 export function getOAuthClient(): OAuth2Client {
   if (_oauthClient) return _oauthClient;

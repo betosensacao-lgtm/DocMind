@@ -4,14 +4,28 @@ import { documents } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET(request: Request) {
-  const organizationId = request.headers.get("x-organization-id");
-  if (!organizationId) return NextResponse.json({ error: "Not authorized" }, { status: 401 });
+  try {
+    const organizationId = request.headers.get("x-organization-id");
 
-  const result = await db
-    .select({ id: documents.id, fileName: documents.fileName, fileType: documents.fileType, fileSize: documents.fileSize, status: documents.status, pageCount: documents.pageCount, createdAt: documents.createdAt })
-    .from(documents)
-    .where(eq(documents.organizationId, organizationId))
-    .orderBy(documents.createdAt);
+    const query = db
+      .select({
+        id: documents.id,
+        fileName: documents.fileName,
+        fileType: documents.fileType,
+        fileSize: documents.fileSize,
+        status: documents.status,
+        pageCount: documents.pageCount,
+        createdAt: documents.createdAt,
+      })
+      .from(documents);
 
-  return NextResponse.json(result);
+    const result = organizationId
+      ? await query.where(eq(documents.organizationId, organizationId)).orderBy(documents.createdAt)
+      : await query.orderBy(documents.createdAt);
+
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("[ADMIN DOCS GET ERROR]", error);
+    return NextResponse.json([]);
+  }
 }

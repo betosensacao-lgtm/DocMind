@@ -1,21 +1,20 @@
 import { google } from "googleapis";
-import type { OAuth2Client } from "google-auth-library";
 import { getAuthenticatedClient, getServiceAccountAuth } from "./auth";
 import type { GoogleTokens } from "./types";
 
-export async function getCalendarClient(auth: OAuth2Client) {
+export async function getCalendarClient(auth: any) {
   return google.calendar({ version: "v3", auth });
 }
 
-export async function getSheetsClient(auth: OAuth2Client) {
+export async function getSheetsClient(auth: any) {
   return google.sheets({ version: "v4", auth });
 }
 
-export async function getDriveClient(auth: OAuth2Client) {
+export async function getDriveClient(auth: any) {
   return google.drive({ version: "v3", auth });
 }
 
-export async function getDocsClient(auth: OAuth2Client) {
+export async function getDocsClient(auth: any) {
   return google.docs({ version: "v1", auth });
 }
 
@@ -41,5 +40,5 @@ export async function getOAuthDocsClient(dbTokens: GoogleTokens) {
 
 export async function getServiceAccountCalendarClient() {
   const auth = getServiceAccountAuth(["https://www.googleapis.com/auth/calendar"]);
-  return google.calendar({ version: "v3", auth });
+  return google.calendar({ version: "v3", auth: auth as any });
 }
