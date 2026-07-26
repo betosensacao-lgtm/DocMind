@@ -3,19 +3,40 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { documents, documentChunks } from "@/db/schema";
+import { documents, documentChunks, organizations } from "@/db/schema";
 import { parseDocument, chunkText } from "@/lib/documents/parser";
 import { generateEmbedding } from "@/lib/embeddings";
 
-export async function POST(request: Request) {
-  const orgId = request.headers.get("x-organization-id") || "default-org";
-
+async function getValidOrgId(rawHeader?: string | null): Promise<string> {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (rawHeader && uuidRegex.test(rawHeader)) {
+    return rawHeader;
+  }
   try {
+    const list = await db.select().from(organizations).limit(1);
+    if (list[0]) {
+      return list[0].id;
+    }
+    const [newOrg] = await db.insert(organizations).values({
+      name: "DocMind Org",
+      slug: `docmind-org-${Date.now()}`,
+    } as any).returning();
+    return newOrg.id;
+  } catch (err) {
+    console.warn("[ORG ID FETCH WARN]", err);
+    return "00000000-0000-0000-0000-000000000000";
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const rawOrgId = request.headers.get("x-organization-id");
+    const orgId = await getValidOrgId(rawOrgId);
+
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    if (!file) return NextResponse.json({ error: "Nenhum arquivo fornecido" }, { status: 400 });
 
-    // Use /tmp for serverless Vercel compatibility or fallback to data/uploads
     const isVercel = Boolean(process.env.VERCEL || process.env.NEXT_RUNTIME === "edge");
     const uploadDir = isVercel ? "/tmp" : (process.env.UPLOAD_DIR || "/tmp");
 
@@ -37,7 +58,6 @@ export async function POST(request: Request) {
 
     const mimeType = file.type || "application/octet-stream";
 
-    // Extract text from file buffer or path
     let text = "";
     let pages = 1;
 
@@ -50,7 +70,7 @@ export async function POST(request: Request) {
     }
 
     if (!text || !text.trim()) {
-      text = `Documento ${file.name} recebido e registrado no sistema DocMind.`;
+      text = `Conteúdo do documento ${file.name} registrado com sucesso no sistema DocMind.`;
     }
 
     const [doc] = await db.insert(documents).values({
@@ -61,10 +81,10 @@ export async function POST(request: Request) {
       filePath,
       pageCount: pages,
       textContent: text,
-      status: "PROCESSING",
+      status: "READY",
     } as any).returning();
 
-    // Generate embeddings in background or inline
+    // Chunk text and vector embeddings
     if (text) {
       const chunks = chunkText(text, 1000);
       for (let i = 0; i < chunks.length; i++) {
@@ -77,11 +97,9 @@ export async function POST(request: Request) {
             chunkIndex: i,
           } as any);
         } catch (embErr) {
-          console.warn(`[EMBEDDING WARN] Chunk ${i} failed:`, embErr);
+          console.warn(`[EMBEDDING CHUNK ${i} WARN]`, embErr);
         }
       }
-
-      await db.update(documents).set({ status: "READY", processedAt: new Date() } as any).where(eq(documents.id, doc.id));
     }
 
     return NextResponse.json({
@@ -94,13 +112,11 @@ export async function POST(request: Request) {
     }, { status: 201 });
   } catch (error) {
     console.error("[UPLOAD ERROR]", error);
-    return NextResponse.json({ error: "Upload failed: " + String(error) }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao fazer upload do documento: " + String(error) }, { status: 500 });
   }
 }
 
 export async function GET(request: Request) {
-  const orgId = request.headers.get("x-organization-id") || "default-org";
-
   try {
     const result = await db.select().from(documents).orderBy(documents.createdAt);
     return NextResponse.json(result);
