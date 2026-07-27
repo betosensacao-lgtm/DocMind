@@ -6,11 +6,12 @@ export function routeAfterRouter(state: typeof DocState.State): string {
   if (err === "EXTRACT") return "extractor";
   if (err === "SUMMARIZE") return "summarizer";
   if (err === "QUESTION") return "qa";
-  return "__end__";
+  // Default to QA node instead of ending silently
+  return "qa";
 }
 
 export function routeAfterProcessor(state: typeof DocState.State): string {
-  if (state.documentContent) return "extractor";
+  if (state.documentContent) return "summarizer";
   return "__end__";
 }
 
