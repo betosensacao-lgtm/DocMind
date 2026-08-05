@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, FileText, Bot, Send, Sparkles, CheckCircle2, Copy } from "lucide-react";
 
 interface DocDetails {
@@ -19,6 +19,7 @@ interface DocDetails {
 export default function DocumentDetailPage() {
   const params = useParams();
   const id = params?.id as string;
+  const router = useRouter();
 
   const [doc, setDoc] = useState<DocDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,13 +31,19 @@ export default function DocumentDetailPage() {
 
   useEffect(() => {
     fetch(`/api/documents/${id}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (r.status === 401) {
+          router.push("/admin/login");
+          return null;
+        }
+        return r.json();
+      })
       .then((data) => {
-        if (data.id) setDoc(data);
+        if (data?.id) setDoc(data);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, router]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
