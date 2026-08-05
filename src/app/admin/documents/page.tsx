@@ -49,7 +49,8 @@ export default function DocumentsPage() {
 
   async function handleDelete(id: string) {
     try {
-      await fetch(`/api/documents/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/documents/${id}`, { method: "DELETE" });
+      if (!res.ok) { toast.error("Delete failed"); return; }
       toast.success("Document deleted");
       fetchDocs();
     } catch { toast.error("Delete failed"); }
