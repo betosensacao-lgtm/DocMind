@@ -60,18 +60,18 @@ export async function processorNode(state: typeof DocState.State) {
   }
 
   return {
-    messages: [new AIMessage(`Documento processado com sucesso: ${chunks.length} trecho(s) extraídos para análise.`)],
-    conversationSummary: `O documento possui ${chunks.length} trecho(s). Pronto para análise.`,
+    messages: [new AIMessage(`Document processed successfully: ${chunks.length} chunk(s) extracted for analysis.`)],
+    conversationSummary: `The document has ${chunks.length} chunk(s). Ready for analysis.`,
   };
 }
 
 export async function extractorNode(state: typeof DocState.State) {
   const llm = createLLM(0.1, 2048);
-  const contentPreview = state.documentContent ? state.documentContent.slice(0, 8000) : "Sem conteúdo disponível.";
-  const prompt = `Você é um especialista em extração de dados estruturados.
-Analise o documento abaixo e extraia as principais informações organizadas em tópicos claros (ex: nomes, empresas, valores, datas, contratos, termos):
+  const contentPreview = state.documentContent ? state.documentContent.slice(0, 8000) : "No content available.";
+  const prompt = `You are a specialist in structured data extraction.
+Analyze the document below and extract the key information organized into clear topics (e.g. names, companies, amounts, dates, contracts, terms):
 
-Conteúdo do Documento:
+Document Content:
 ${contentPreview}`;
 
   try {
@@ -79,26 +79,26 @@ ${contentPreview}`;
     const text = r.content.toString();
     return { messages: [new AIMessage(text)] };
   } catch {
-    return { messages: [new AIMessage("Extração concluída para o documento.")] };
+    return { messages: [new AIMessage("Extraction completed for the document.")] };
   }
 }
 
 export async function summarizerNode(state: typeof DocState.State) {
   const llm = createLLM(0.3, 2048);
-  const contentPreview = state.documentContent ? state.documentContent.slice(0, 8000) : "Nenhum conteúdo disponível para resumo.";
+  const contentPreview = state.documentContent ? state.documentContent.slice(0, 8000) : "No content available for summary.";
 
-  const prompt = `Você é um especialista em análise e resumo de documentos.
-Analise o documento fornecido abaixo e elabore um resumo completo, claro e bem estruturado em português do Brasil.
+  const prompt = `You are a specialist in document analysis and summarization.
+Analyze the document provided below and produce a complete, clear, and well-structured summary.
 
-Estruture sua resposta assim:
-📝 **RESUMO DO DOCUMENTO**
+Structure your response like this:
+📝 **DOCUMENT SUMMARY**
 
-1. **Objetivo Principal & Visão Geral**
-2. **Principais Tópicos e Seções**
-3. **Valores, Datas ou Dados Relevantes**
-4. **Conclusão e Próximos Passos / Observações**
+1. **Main Purpose & Overview**
+2. **Key Topics and Sections**
+3. **Relevant Amounts, Dates, or Data**
+4. **Conclusion and Next Steps / Observations**
 
-Conteúdo do Documento:
+Document Content:
 ${contentPreview}`;
 
   try {
@@ -109,7 +109,7 @@ ${contentPreview}`;
       summary: summaryText,
     };
   } catch (err) {
-    const fallbackText = "Resumo do documento:\n" + contentPreview.slice(0, 500) + "...";
+    const fallbackText = "Document summary:\n" + contentPreview.slice(0, 500) + "...";
     return {
       messages: [new AIMessage(fallbackText)],
       summary: fallbackText,
@@ -140,20 +140,20 @@ export async function qaNode(state: typeof DocState.State) {
     } catch {}
   }
 
-  const prompt = `Você é o assistente IA especializado em análise documental da plataforma DocMind.
-Responda à pergunta do usuário utilizando como base os trechos do documento fornecido abaixo.
-Responda sempre em português do Brasil de forma amigável, clara e objetiva.
+  const prompt = `You are the AI assistant specialized in document analysis for the DocMind platform.
+Answer the user's question based on the document excerpts provided below.
+Always respond in a friendly, clear, and objective manner.
 
-Trecho(s) do Documento:
-${relevantContent || "Conteúdo geral do documento carregado."}
+Document Excerpt(s):
+${relevantContent || "General content of the loaded document."}
 
-Pergunta do Usuário: ${lastMsg}`;
+User Question: ${lastMsg}`;
 
   try {
     const r = await llm.invoke([new SystemMessage(prompt)]);
     return { messages: [new AIMessage(r.content.toString())] };
   } catch (err) {
-    return { messages: [new AIMessage("Desculpe, ocorreu um erro ao consultar o documento. Por favor, tente novamente.")] };
+    return { messages: [new AIMessage("Sorry, an error occurred while consulting the document. Please try again.")] };
   }
 }
 
@@ -162,32 +162,32 @@ export async function comparatorNode(state: typeof DocState.State) {
 
   if (!state.compareDocumentContent) {
     return {
-      messages: [new AIMessage("Selecione um segundo documento para comparar antes de pedir a comparação.")],
+      messages: [new AIMessage("Select a second document to compare before requesting the comparison.")],
     };
   }
 
-  const contentA = state.documentContent ? state.documentContent.slice(0, 6000) : "Sem conteúdo disponível.";
+  const contentA = state.documentContent ? state.documentContent.slice(0, 6000) : "No content available.";
   const contentB = state.compareDocumentContent.slice(0, 6000);
 
-  const prompt = `Você é um especialista em análise comparativa de documentos.
-Compare os dois documentos abaixo e responda em português do Brasil, de forma clara e objetiva, estruturando assim:
+  const prompt = `You are a specialist in comparative document analysis.
+Compare the two documents below and respond clearly and objectively, structured like this:
 
-🔍 **COMPARAÇÃO DE DOCUMENTOS**
+🔍 **DOCUMENT COMPARISON**
 
-1. **Principais Semelhanças**
-2. **Principais Diferenças**
-3. **Pontos de Atenção** (valores, datas ou cláusulas divergentes, se houver)
+1. **Key Similarities**
+2. **Key Differences**
+3. **Points of Attention** (amounts, dates, or diverging clauses, if any)
 
-Documento A:
+Document A:
 ${contentA}
 
-Documento B:
+Document B:
 ${contentB}`;
 
   try {
     const r = await llm.invoke([new SystemMessage(prompt)]);
     return { messages: [new AIMessage(r.content.toString())] };
   } catch {
-    return { messages: [new AIMessage("Desculpe, ocorreu um erro ao comparar os documentos. Por favor, tente novamente.")] };
+    return { messages: [new AIMessage("Sorry, an error occurred while comparing the documents. Please try again.")] };
   }
 }
