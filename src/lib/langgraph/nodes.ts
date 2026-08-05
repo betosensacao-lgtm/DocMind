@@ -22,6 +22,7 @@ const ROUTER_PROMPT = `You are a document query classifier. Classify the user's 
 - PROCESS: User uploaded or mentioned a document to process
 - EXTRACT: User wants to extract specific data, tables or fields
 - SUMMARIZE: User wants a document summary, overview or main points
+- COMPARE: User wants to compare the current document against another document
 - QUESTION: User has a question about the document content
 - UNKNOWN: Cannot determine intent
 Respond ONLY with the single intent word.`;
@@ -32,7 +33,7 @@ export async function routerNode(state: typeof DocState.State) {
   try {
     const r = await llm.invoke([new SystemMessage(ROUTER_PROMPT), new HumanMessage(String(last))]);
     const intent = r.content.toString().trim().toUpperCase();
-    const valid = ["PROCESS", "EXTRACT", "SUMMARIZE", "QUESTION"];
+    const valid = ["PROCESS", "EXTRACT", "SUMMARIZE", "COMPARE", "QUESTION"];
     const matchedIntent = valid.find(v => intent.includes(v)) || "QUESTION";
     return { messages: [new AIMessage(`[Intent: ${matchedIntent}]`)], error: matchedIntent };
   } catch {
@@ -153,5 +154,40 @@ Pergunta do Usuário: ${lastMsg}`;
     return { messages: [new AIMessage(r.content.toString())] };
   } catch (err) {
     return { messages: [new AIMessage("Desculpe, ocorreu um erro ao consultar o documento. Por favor, tente novamente.")] };
+  }
+}
+
+export async function comparatorNode(state: typeof DocState.State) {
+  const llm = createLLM(0.2, 2048);
+
+  if (!state.compareDocumentContent) {
+    return {
+      messages: [new AIMessage("Selecione um segundo documento para comparar antes de pedir a comparação.")],
+    };
+  }
+
+  const contentA = state.documentContent ? state.documentContent.slice(0, 6000) : "Sem conteúdo disponível.";
+  const contentB = state.compareDocumentContent.slice(0, 6000);
+
+  const prompt = `Você é um especialista em análise comparativa de documentos.
+Compare os dois documentos abaixo e responda em português do Brasil, de forma clara e objetiva, estruturando assim:
+
+🔍 **COMPARAÇÃO DE DOCUMENTOS**
+
+1. **Principais Semelhanças**
+2. **Principais Diferenças**
+3. **Pontos de Atenção** (valores, datas ou cláusulas divergentes, se houver)
+
+Documento A:
+${contentA}
+
+Documento B:
+${contentB}`;
+
+  try {
+    const r = await llm.invoke([new SystemMessage(prompt)]);
+    return { messages: [new AIMessage(r.content.toString())] };
+  } catch {
+    return { messages: [new AIMessage("Desculpe, ocorreu um erro ao comparar os documentos. Por favor, tente novamente.")] };
   }
 }

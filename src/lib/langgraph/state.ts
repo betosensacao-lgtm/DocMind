@@ -8,6 +8,8 @@ export const DocState = Annotation.Root({
   fileName: Annotation<string>(),
   fileType: Annotation<string>(),
   documentContent: Annotation<string>(),
+  compareDocumentId: Annotation<string>(),
+  compareDocumentContent: Annotation<string>(),
   extractionResults: Annotation<Record<string, string>>({ reducer: (a, b) => ({ ...a, ...b }) }),
   summary: Annotation<string>(),
   conversationSummary: Annotation<string>(),

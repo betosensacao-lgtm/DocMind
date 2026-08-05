@@ -5,6 +5,7 @@ export function routeAfterRouter(state: typeof DocState.State): string {
   if (err === "PROCESS") return "processor";
   if (err === "EXTRACT") return "extractor";
   if (err === "SUMMARIZE") return "summarizer";
+  if (err === "COMPARE") return state.compareDocumentContent ? "comparator" : "qa";
   if (err === "QUESTION") return "qa";
   // Default to QA node instead of ending silently
   return "qa";
@@ -24,5 +25,9 @@ export function routeAfterSummarizer(_state: typeof DocState.State): string {
 }
 
 export function routeAfterQa(_state: typeof DocState.State): string {
+  return "__end__";
+}
+
+export function routeAfterComparator(_state: typeof DocState.State): string {
   return "__end__";
 }
