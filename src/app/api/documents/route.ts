@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    if (!file) return NextResponse.json({ error: "Nenhum arquivo fornecido" }, { status: 400 });
+    if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
 
     const isVercel = Boolean(process.env.VERCEL || process.env.NEXT_RUNTIME === "edge");
     const uploadDir = isVercel ? "/tmp" : (process.env.UPLOAD_DIR || "/tmp");
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     }
 
     if (!text || !text.trim()) {
-      text = `Conteúdo do documento ${file.name} registrado com sucesso no sistema DocMind.`;
+      text = `Content of document ${file.name} successfully registered in the DocMind system.`;
     }
 
     const [doc] = await db.insert(documents).values({
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
     }, { status: 201 });
   } catch (error) {
     console.error("[UPLOAD ERROR]", error);
-    return NextResponse.json({ error: "Erro ao fazer upload do documento: " + String(error) }, { status: 500 });
+    return NextResponse.json({ error: "Error uploading document: " + String(error) }, { status: 500 });
   }
 }
 

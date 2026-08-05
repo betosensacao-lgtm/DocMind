@@ -8,13 +8,13 @@ import { cookies } from "next/headers";
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
-    if (!email || !password) return NextResponse.json({ error: "Email e senha obrigatórios" }, { status: 400 });
+    if (!email || !password) return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
 
     const cleanEmail = email.trim().toLowerCase();
     let user = await getUserByEmail(cleanEmail).catch(() => null);
 
-    // Bootstrap: só cria o primeiro admin automaticamente quando NÃO existe
-    // absolutamente nenhum usuário no banco (primeiríssimo login em produção).
+    // Bootstrap: only auto-creates the first admin when there is truly
+    // no user at all in the database (very first login in production).
     if (!user) {
       const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(users);
       const isBootstrap = Number(count) === 0;
@@ -47,17 +47,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user) {
-      return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 });
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // Verificar senha — fail closed: qualquer erro na verificação nega o login.
+    // Verify password — fail closed: any verification error denies the login.
     const isValid = await verifyPassword(password, user.passwordHash).catch(() => false);
     if (!isValid) {
-      return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 });
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
     if (!user.active) {
-      return NextResponse.json({ error: "Usuário desativado" }, { status: 403 });
+      return NextResponse.json({ error: "User deactivated" }, { status: 403 });
     }
 
     const token = await createSessionToken({
@@ -93,6 +93,6 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("[LOGIN ERROR]", error);
-    return NextResponse.json({ error: "Erro interno no servidor" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

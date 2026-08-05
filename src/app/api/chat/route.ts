@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
     const sanitized = sanitizeInput(message);
     if (detectInjection(sanitized)) {
-      return NextResponse.json({ reply: "Desculpe, não posso processar essa mensagem." });
+      return NextResponse.json({ reply: "Sorry, I can't process that message." });
     }
 
     const result = await runDocGraph({
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     }
 
     if (!reply) {
-      reply = result.summary || "Documento analisado com sucesso.";
+      reply = result.summary || "Document analyzed successfully.";
     }
 
     return NextResponse.json({
@@ -99,6 +99,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("[CHAT ERROR]", error);
-    return NextResponse.json({ error: "Erro interno no servidor ao consultar o documento" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error while consulting the document" }, { status: 500 });
   }
 }
