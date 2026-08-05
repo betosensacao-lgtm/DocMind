@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { JWT_SECRET } from "@/lib/jwt-secret";
 
 const publicRoutes = ["/admin/login", "/admin/signup"];
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? "dev-secret");
 
 interface SessionPayload {
   userId: string;
