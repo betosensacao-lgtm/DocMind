@@ -26,13 +26,13 @@ export default function HomePage() {
               href="/admin/login"
               className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
             >
-              Acesso Admin
+              Admin Access
             </Link>
             <Link
               href="/admin/documents"
               className="group relative flex items-center gap-2 text-sm bg-gradient-to-r from-teal-500 to-indigo-600 text-white px-5 py-2.5 rounded-full font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20"
             >
-              Documentos & Chat
+              Documents & Chat
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </nav>
@@ -43,18 +43,18 @@ export default function HomePage() {
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-32 text-center z-10">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-sm font-medium mb-8">
           <Zap className="w-4 h-4 fill-current" />
-          RAG Multi-Formato & Leitor Inteligente de Documentos
+          Multi-Format RAG & Intelligent Document Reader
         </div>
 
         <h1 className="text-5xl md:text-7xl font-extrabold max-w-5xl leading-tight tracking-tight">
-          Análise Inteligente de{" "}
+          Intelligent Analysis of{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-emerald-300 to-purple-400">
-            PDFs, DOCX e Planilhas
+            PDFs, DOCX and Spreadsheets
           </span>
         </h1>
 
         <p className="text-lg md:text-xl text-slate-400 max-w-3xl mt-8 leading-relaxed">
-          DocMind lê contratos, relatórios e planilhas usando embeddings densos e RAG contextualizado. Faça perguntas, gere resumos e extraia dados estruturados em instantes.
+          DocMind reads contracts, reports, and spreadsheets using dense embeddings and contextual RAG. Ask questions, generate summaries, and extract structured data in seconds.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-12">
@@ -62,14 +62,14 @@ export default function HomePage() {
             href="/admin/documents"
             className="flex items-center justify-center gap-2 bg-gradient-to-r from-teal-500 to-indigo-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-xl shadow-teal-500/25 hover:scale-105 transition-all"
           >
-            Enviar e Analisar Documento
+            Upload and Analyze Document
             <ArrowRight className="w-5 h-5" />
           </Link>
           <Link
             href="/admin/dashboard"
             className="flex items-center justify-center px-8 py-4 rounded-full font-semibold text-lg border border-slate-800 bg-slate-900/50 hover:bg-slate-800 transition-colors"
           >
-            Ver Painel RAG
+            View RAG Dashboard
           </Link>
         </div>
 
@@ -78,22 +78,22 @@ export default function HomePage() {
           {[
             {
               icon: FileText,
-              title: "Parsing Multi-Formato Native",
-              desc: "Suporte completo para leitura de PDF, Word (.docx), Excel (.xlsx), CSV, Markdown e TXT.",
+              title: "Native Multi-Format Parsing",
+              desc: "Full support for reading PDF, Word (.docx), Excel (.xlsx), CSV, Markdown, and TXT.",
               color: "text-teal-400",
               bg: "bg-teal-400/10",
             },
             {
               icon: Sparkles,
-              title: "Vetorização Densa 1536D",
-              desc: "Embeddings densos L2-normalizados com busca por Similaridade de Cosseno no PGVector.",
+              title: "Dense 1536D Vectorization",
+              desc: "L2-normalized dense embeddings with Cosine Similarity search in PGVector.",
               color: "text-purple-400",
               bg: "bg-purple-400/10",
             },
             {
               icon: Database,
-              title: "Chat Contextual RAG",
-              desc: "Conversação em tempo real alimentada por contexto extraído diretamente dos seus documentos.",
+              title: "Contextual RAG Chat",
+              desc: "Real-time conversation powered by context extracted directly from your documents.",
               color: "text-indigo-400",
               bg: "bg-indigo-400/10",
             },
@@ -114,7 +114,7 @@ export default function HomePage() {
 
       <footer className="border-t border-slate-800 py-8 text-center text-sm text-slate-500 z-10 relative">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6">
-          <p>© 2026 DocMind RAG Intelligence. Todos os direitos reservados.</p>
+          <p>© 2026 DocMind RAG Intelligence. All rights reserved.</p>
           <div className="flex gap-4 text-xs">
             <span className="hover:text-slate-300 cursor-pointer">PGVector</span>
             <span className="hover:text-slate-300 cursor-pointer">Multi-Format RAG</span>

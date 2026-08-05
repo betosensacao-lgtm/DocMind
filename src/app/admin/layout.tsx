@@ -17,15 +17,15 @@ import { cn } from "@/lib/cn";
 const publicPaths = ["/admin/login", "/admin/signup"];
 
 const navItems = [
-  { href: "/admin/dashboard", label: "Dashboard RAG", icon: LayoutDashboard },
-  { href: "/admin/documents", label: "Documentos", icon: FileText },
-  { href: "/admin/extractions", label: "Extrações", icon: Database },
+  { href: "/admin/dashboard", label: "RAG Dashboard", icon: LayoutDashboard },
+  { href: "/admin/documents", label: "Documents", icon: FileText },
+  { href: "/admin/extractions", label: "Extractions", icon: Database },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<any>({ name: "Consultor RAG", role: "admin" });
+  const [user, setUser] = useState<any>({ name: "RAG Consultant", role: "admin" });
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -98,19 +98,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Sparkles className="w-4 h-4 text-teal-400 flex-shrink-0" />
             <div>
               <p className="font-medium text-slate-200">RAG Engine 1536D</p>
-              <p className="text-[10px]">Vector Search Ativo</p>
+              <p className="text-[10px]">Vector Search Active</p>
             </div>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="text-xs">
-              <p className="font-medium text-slate-200 truncate">{user?.name || "Consultor RAG"}</p>
+              <p className="font-medium text-slate-200 truncate">{user?.name || "RAG Consultant"}</p>
               <p className="text-[10px] text-slate-400 capitalize">{user?.role || "admin"}</p>
             </div>
             <button
               onClick={handleLogout}
               className="text-slate-400 hover:text-red-400 transition-colors p-1"
-              title="Sair"
+              title="Sign Out"
             >
               <LogOut size={16} />
             </button>

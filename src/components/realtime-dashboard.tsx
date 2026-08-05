@@ -20,7 +20,7 @@ export function RealtimeDashboard() {
           console.log("Change received on docmind_documents!", payload);
           setLastEvent({ type: "document", data: payload });
           setIsVisible(true);
-          toast.info(`Atualização de documento ao vivo!`);
+          toast.info(`Live document update!`);
         }
       )
       .on(
@@ -30,7 +30,7 @@ export function RealtimeDashboard() {
           console.log("Change received on extractions!", payload);
           setLastEvent({ type: "extraction", data: payload });
           setIsVisible(true);
-          toast.success(`Novos dados extraídos pela IA!`);
+          toast.success(`New data extracted by AI!`);
         }
       )
       .subscribe((status) => {

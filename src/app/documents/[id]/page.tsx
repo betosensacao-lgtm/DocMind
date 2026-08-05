@@ -24,7 +24,7 @@ export default function DocumentDetailPage() {
   const [doc, setDoc] = useState<DocDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([
-    { role: "assistant", content: "Olá! Faça qualquer pergunta ou peça um resumo/extração de dados sobre este documento." }
+    { role: "assistant", content: "Hi! Ask any question or request a summary/data extraction about this document." }
   ]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -97,10 +97,10 @@ export default function DocumentDetailPage() {
       });
 
       const data = await res.json();
-      const aiReply = data.reply || "Documento analisado com sucesso.";
+      const aiReply = data.reply || "Document analyzed successfully.";
       setChatMessages((prev) => [...prev, { role: "assistant", content: aiReply }]);
     } catch {
-      setChatMessages((prev) => [...prev, { role: "assistant", content: "Erro ao consultar a IA sobre este documento." }]);
+      setChatMessages((prev) => [...prev, { role: "assistant", content: "Error consulting the AI about this document." }]);
     } finally {
       setSending(false);
     }
@@ -124,21 +124,21 @@ export default function DocumentDetailPage() {
             className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Voltar para Documentos
+            Back to Documents
           </Link>
           <span className="text-slate-700">|</span>
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-teal-400" />
-            <h1 className="font-semibold text-sm truncate max-w-md">{doc?.fileName || `Documento ${id}`}</h1>
+            <h1 className="font-semibold text-sm truncate max-w-md">{doc?.fileName || `Document ${id}`}</h1>
           </div>
         </div>
 
         <div className="flex items-center gap-3 text-xs">
           <span className="bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5">
             <CheckCircle2 className="w-3 h-3" />
-            {doc?.status || "PRONTO"}
+            {doc?.status || "READY"}
           </span>
-          <span className="text-slate-400">{doc?.pageCount || 1} pág(s)</span>
+          <span className="text-slate-400">{doc?.pageCount || 1} page(s)</span>
         </div>
       </header>
 
@@ -147,17 +147,17 @@ export default function DocumentDetailPage() {
         {/* Left Column: Document Reader Preview */}
         <div className="border-r border-slate-800 p-6 overflow-y-auto max-h-[calc(100vh-65px)] bg-slate-900/20">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Conteúdo do Documento</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Document Content</h2>
             <button
               onClick={() => navigator.clipboard.writeText(doc?.textContent || "")}
               className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 bg-slate-800 px-2.5 py-1 rounded transition-colors"
             >
-              <Copy className="w-3 h-3" /> Copiar Texto
+              <Copy className="w-3 h-3" /> Copy Text
             </button>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-sm text-slate-300 font-mono whitespace-pre-wrap leading-relaxed shadow-inner">
-            {doc?.textContent || "Nenhum conteúdo de texto extraído."}
+            {doc?.textContent || "No text content extracted."}
           </div>
         </div>
 
@@ -166,7 +166,7 @@ export default function DocumentDetailPage() {
           <div className="p-4 border-b border-slate-800 bg-slate-900/30 flex items-center gap-2 justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-purple-400" />
-              <h2 className="text-sm font-semibold text-slate-200">Assistente IA RAG DocMind</h2>
+              <h2 className="text-sm font-semibold text-slate-200">DocMind RAG AI Assistant</h2>
             </div>
             {compareOptions.length > 0 && (
               <select
@@ -174,7 +174,7 @@ export default function DocumentDetailPage() {
                 onChange={(e) => handleCompareSelect(e.target.value)}
                 className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-teal-500"
               >
-                <option value="">Comparar com...</option>
+                <option value="">Compare with...</option>
                 {compareOptions.map((opt) => (
                   <option key={opt.id} value={opt.id}>{opt.fileName}</option>
                 ))}
@@ -208,7 +208,7 @@ export default function DocumentDetailPage() {
             {sending && (
               <div className="flex gap-3 items-center text-xs text-slate-500">
                 <div className="w-6 h-6 rounded-full border border-teal-500/30 border-t-teal-400 animate-spin" />
-                Analisando documento...
+                Analyzing document...
               </div>
             )}
           </div>
@@ -219,7 +219,7 @@ export default function DocumentDetailPage() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Pergunte sobre contratos, valores, cláusulas, datas..."
+              placeholder="Ask about contracts, amounts, clauses, dates..."
               className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
             />
             <button
@@ -228,7 +228,7 @@ export default function DocumentDetailPage() {
               className="bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white px-5 py-3 rounded-xl font-medium text-sm flex items-center gap-2 transition-all shadow-lg shadow-teal-600/20"
             >
               <Send className="w-4 h-4" />
-              Enviar
+              Send
             </button>
           </form>
         </div>
