@@ -2,19 +2,46 @@ export const maxDuration = 60;
 
 import { NextResponse } from "next/server";
 import { HumanMessage } from "@langchain/core/messages";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { documents } from "@/db/schema";
 import { runDocGraph } from "@/lib/langgraph";
 import { sanitizeInput, detectInjection } from "@/lib/security/guardrails";
+import { getSessionFromRequest } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { message, documentId, documentContent, organizationId, conversationId } = body;
+    const { message, documentId, documentContent, conversationId } = body;
 
     if (!message) {
       return NextResponse.json({ error: "message is required" }, { status: 400 });
     }
 
-    const orgId = organizationId || "demo";
+    let orgId = "demo";
+    let safeDocumentId = "";
+    let safeDocumentContent = "";
+
+    // documentId/documentContent only flow through with a verified session that
+    // owns the document — otherwise qaNode's vector lookup and processorNode's
+    // chunk insert would let an unauthenticated caller read or poison any
+    // organization's document just by guessing its id.
+    if (documentId) {
+      const session = await getSessionFromRequest(request);
+      if (!session) {
+        return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+      }
+
+      const [doc] = await db.select().from(documents).where(eq(documents.id, documentId));
+      if (!doc || doc.organizationId !== session.organizationId) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
+
+      orgId = session.organizationId;
+      safeDocumentId = documentId;
+      safeDocumentContent = documentContent ?? "";
+    }
+
     const sanitized = sanitizeInput(message);
     if (detectInjection(sanitized)) {
       return NextResponse.json({ reply: "Desculpe, não posso processar essa mensagem." });
@@ -23,8 +50,8 @@ export async function POST(request: Request) {
     const result = await runDocGraph({
       messages: [new HumanMessage(sanitized)],
       organizationId: orgId,
-      documentId: documentId ?? "",
-      documentContent: documentContent ?? "",
+      documentId: safeDocumentId,
+      documentContent: safeDocumentContent,
     }, conversationId);
 
     const messages = result.messages || [];
