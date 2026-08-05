@@ -16,7 +16,11 @@ async function run() {
   } as any).returning();
   const pw = await hashPassword("ccEH@fNU7VEhbccW");
   await db.insert(users).values({ organizationId: org.id, email: "admin@demo.com", name: "Admin", role: "admin", passwordHash: pw } as any);
-  console.log("Seed done! admin@demo.com / ccEH@fNU7VEhbccW");
+  if (process.env.NODE_ENV === "production") {
+    console.log("Seed done! Admin user admin@demo.com created (password not printed in production).");
+  } else {
+    console.log("Seed done! admin@demo.com / ccEH@fNU7VEhbccW");
+  }
   await client.end();
   process.exit(0);
 }
