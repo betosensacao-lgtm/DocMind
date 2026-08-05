@@ -29,6 +29,35 @@ export default function DocumentDetailPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
 
+  const [compareOptions, setCompareOptions] = useState<{ id: string; fileName: string }[]>([]);
+  const [compareId, setCompareId] = useState("");
+  const [compareContent, setCompareContent] = useState("");
+
+  useEffect(() => {
+    fetch("/api/admin/documents")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: { id: string; fileName: string }[]) => {
+        if (Array.isArray(data)) setCompareOptions(data.filter((d) => d.id !== id));
+      })
+      .catch(() => {});
+  }, [id]);
+
+  async function handleCompareSelect(selectedId: string) {
+    setCompareId(selectedId);
+    if (!selectedId) {
+      setCompareContent("");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/documents/${selectedId}`);
+      if (!res.ok) { setCompareContent(""); return; }
+      const data = await res.json();
+      setCompareContent(data.textContent || "");
+    } catch {
+      setCompareContent("");
+    }
+  }
+
   useEffect(() => {
     fetch(`/api/documents/${id}`)
       .then((r) => {
@@ -61,6 +90,8 @@ export default function DocumentDetailPage() {
         body: JSON.stringify({
           documentId: id,
           documentContent: doc?.textContent || "",
+          compareDocumentId: compareId || undefined,
+          compareDocumentContent: compareId ? compareContent : undefined,
           message: userMsg,
         }),
       });
@@ -132,9 +163,23 @@ export default function DocumentDetailPage() {
 
         {/* Right Column: Interactive AI RAG Assistant */}
         <div className="flex flex-col max-h-[calc(100vh-65px)] bg-slate-950">
-          <div className="p-4 border-b border-slate-800 bg-slate-900/30 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <h2 className="text-sm font-semibold text-slate-200">Assistente IA RAG DocMind</h2>
+          <div className="p-4 border-b border-slate-800 bg-slate-900/30 flex items-center gap-2 justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-400" />
+              <h2 className="text-sm font-semibold text-slate-200">Assistente IA RAG DocMind</h2>
+            </div>
+            {compareOptions.length > 0 && (
+              <select
+                value={compareId}
+                onChange={(e) => handleCompareSelect(e.target.value)}
+                className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-teal-500"
+              >
+                <option value="">Comparar com...</option>
+                {compareOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>{opt.fileName}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Messages Feed */}
