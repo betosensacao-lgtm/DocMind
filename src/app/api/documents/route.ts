@@ -3,35 +3,18 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { documents, documentChunks, organizations } from "@/db/schema";
+import { documents, documentChunks } from "@/db/schema";
 import { parseDocument, chunkText } from "@/lib/documents/parser";
 import { generateEmbedding } from "@/lib/embeddings";
-
-async function getValidOrgId(rawHeader?: string | null): Promise<string> {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (rawHeader && uuidRegex.test(rawHeader)) {
-    return rawHeader;
-  }
-  try {
-    const list = await db.select().from(organizations).limit(1);
-    if (list[0]) {
-      return list[0].id;
-    }
-    const [newOrg] = await db.insert(organizations).values({
-      name: "DocMind Org",
-      slug: `docmind-org-${Date.now()}`,
-    } as any).returning();
-    return newOrg.id;
-  } catch (err) {
-    console.warn("[ORG ID FETCH WARN]", err);
-    return "00000000-0000-0000-0000-000000000000";
-  }
-}
+import { getSessionFromRequest } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
   try {
-    const rawOrgId = request.headers.get("x-organization-id");
-    const orgId = await getValidOrgId(rawOrgId);
+    const session = await getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+    const orgId = session.organizationId;
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
@@ -118,7 +101,16 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const result = await db.select().from(documents).orderBy(documents.createdAt);
+    const session = await getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const result = await db
+      .select()
+      .from(documents)
+      .where(eq(documents.organizationId, session.organizationId))
+      .orderBy(documents.createdAt);
     return NextResponse.json(result);
   } catch (error) {
     console.error("[FETCH DOCUMENTS ERROR]", error);
