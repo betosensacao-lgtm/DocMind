@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserByEmail, verifyPassword, createSessionToken, updateLastLogin, hashPassword } from "@/lib/auth";
 import { db } from "@/db";
 import { organizations, users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
@@ -13,31 +13,36 @@ export async function POST(request: NextRequest) {
     const cleanEmail = email.trim().toLowerCase();
     let user = await getUserByEmail(cleanEmail).catch(() => null);
 
-    // Auto-criar admin se não existir (primeiro acesso em produção)
+    // Bootstrap: só cria o primeiro admin automaticamente quando NÃO existe
+    // absolutamente nenhum usuário no banco (primeiríssimo login em produção).
     if (!user) {
-      try {
-        // Buscar ou criar organização padrão
-        let orgList = await db.select().from(organizations).limit(1);
-        let org = orgList[0];
-        if (!org) {
-          [org] = await db.insert(organizations).values({
-            name: "DocMind Org",
-            slug: `docmind-${Date.now()}`,
-          } as any).returning();
-        }
+      const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(users);
+      const isBootstrap = Number(count) === 0;
 
-        const passwordHash = await hashPassword(password);
-        const [newUser] = await db.insert(users).values({
-          organizationId: org.id,
-          email: cleanEmail,
-          name: cleanEmail.split("@")[0],
-          role: "admin",
-          passwordHash,
-          active: true,
-        } as any).returning();
-        user = newUser;
-      } catch (insertErr) {
-        console.warn("[AUTO CREATE USER WARN]", insertErr);
+      if (isBootstrap) {
+        try {
+          let orgList = await db.select().from(organizations).limit(1);
+          let org = orgList[0];
+          if (!org) {
+            [org] = await db.insert(organizations).values({
+              name: "DocMind Org",
+              slug: `docmind-${Date.now()}`,
+            } as any).returning();
+          }
+
+          const passwordHash = await hashPassword(password);
+          const [newUser] = await db.insert(users).values({
+            organizationId: org.id,
+            email: cleanEmail,
+            name: cleanEmail.split("@")[0],
+            role: "admin",
+            passwordHash,
+            active: true,
+          } as any).returning();
+          user = newUser;
+        } catch (insertErr) {
+          console.warn("[BOOTSTRAP ADMIN CREATE WARN]", insertErr);
+        }
       }
     }
 
@@ -45,8 +50,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 });
     }
 
-    // Verificar senha (com tolerância para primeiro acesso)
-    const isValid = await verifyPassword(password, user.passwordHash).catch(() => true);
+    // Verificar senha — fail closed: qualquer erro na verificação nega o login.
+    const isValid = await verifyPassword(password, user.passwordHash).catch(() => false);
     if (!isValid) {
       return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 });
     }
