@@ -2,14 +2,20 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { documents, documentChunks, extractions } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { getSessionFromRequest } from "@/lib/api-auth";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const orgId = request.headers.get("x-organization-id") || "default-org";
+  const session = await getSessionFromRequest(request);
+  if (!session) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
 
   try {
     const [doc] = await db.select().from(documents).where(eq(documents.id, id));
-    if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!doc || doc.organizationId !== session.organizationId) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
 
     const chunks = await db.select().from(documentChunks).where(eq(documentChunks.documentId, id)).orderBy(documentChunks.chunkIndex);
     const extracted = await db.select().from(extractions).where(eq(extractions.documentId, id));
@@ -27,8 +33,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const session = await getSessionFromRequest(request);
+  if (!session) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
 
   try {
+    const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+    if (!doc || doc.organizationId !== session.organizationId) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
     await db.delete(extractions).where(eq(extractions.documentId, id));
     await db.delete(documentChunks).where(eq(documentChunks.documentId, id));
     await db.delete(documents).where(eq(documents.id, id));
