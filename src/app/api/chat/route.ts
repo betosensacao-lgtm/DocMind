@@ -12,7 +12,7 @@ import { getSessionFromRequest } from "@/lib/api-auth";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { message, documentId, documentContent, conversationId } = body;
+    const { message, documentId, documentContent, compareDocumentId, compareDocumentContent, conversationId } = body;
 
     if (!message) {
       return NextResponse.json({ error: "message is required" }, { status: 400 });
@@ -21,25 +21,37 @@ export async function POST(request: Request) {
     let orgId = "demo";
     let safeDocumentId = "";
     let safeDocumentContent = "";
+    let safeCompareDocumentId = "";
+    let safeCompareDocumentContent = "";
 
-    // documentId/documentContent only flow through with a verified session that
-    // owns the document — otherwise qaNode's vector lookup and processorNode's
-    // chunk insert would let an unauthenticated caller read or poison any
-    // organization's document just by guessing its id.
-    if (documentId) {
+    // documentId/compareDocumentId only flow through with a verified session that
+    // owns each document — otherwise qaNode's vector lookup, processorNode's chunk
+    // insert, and now comparatorNode would let an unauthenticated caller read or
+    // poison any organization's document just by guessing its id.
+    if (documentId || compareDocumentId) {
       const session = await getSessionFromRequest(request);
       if (!session) {
         return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
       }
+      orgId = session.organizationId;
 
-      const [doc] = await db.select().from(documents).where(eq(documents.id, documentId));
-      if (!doc || doc.organizationId !== session.organizationId) {
-        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      if (documentId) {
+        const [doc] = await db.select().from(documents).where(eq(documents.id, documentId));
+        if (!doc || doc.organizationId !== session.organizationId) {
+          return NextResponse.json({ error: "Not found" }, { status: 404 });
+        }
+        safeDocumentId = documentId;
+        safeDocumentContent = documentContent ?? "";
       }
 
-      orgId = session.organizationId;
-      safeDocumentId = documentId;
-      safeDocumentContent = documentContent ?? "";
+      if (compareDocumentId) {
+        const [compareDoc] = await db.select().from(documents).where(eq(documents.id, compareDocumentId));
+        if (!compareDoc || compareDoc.organizationId !== session.organizationId) {
+          return NextResponse.json({ error: "Not found" }, { status: 404 });
+        }
+        safeCompareDocumentId = compareDocumentId;
+        safeCompareDocumentContent = compareDocumentContent ?? "";
+      }
     }
 
     const sanitized = sanitizeInput(message);
@@ -52,6 +64,8 @@ export async function POST(request: Request) {
       organizationId: orgId,
       documentId: safeDocumentId,
       documentContent: safeDocumentContent,
+      compareDocumentId: safeCompareDocumentId,
+      compareDocumentContent: safeCompareDocumentContent,
     }, conversationId);
 
     const messages = result.messages || [];
